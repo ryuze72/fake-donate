@@ -1,40 +1,107 @@
--- Fishit Fast Fishing (Client Side)
+-- Free Cam Mobile (Touch)
 -- by joy_yepyep
 
 local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
-local StarterGui = game:GetService("StarterGui")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local cam = workspace.CurrentCamera
+
+local enabled = false
+local speed = 1.5
+local moveDir = Vector3.zero
+local lastTouchPos = nil
 
 -- ================= UI =================
-local ScreenGui = Instance.new("ScreenGui", PlayerGui)
-ScreenGui.Name = "FishitFastUI"
-ScreenGui.ResetOnSpawn = false
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "FreeCamMobile"
+gui.ResetOnSpawn = false
 
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.fromScale(0.25, 0.25)
-Frame.Position = UDim2.fromScale(0.37, 0.3)
-Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Frame.Visible = false
-Frame.Active = true
-Frame.Draggable = true
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.fromScale(0.45, 0.35)
+frame.Position = UDim2.fromScale(0.05, 0.55)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.Active = true
+frame.Draggable = true
 
-local Title = Instance.new("TextLabel", Frame)
-Title.Size = UDim2.fromScale(1,0.2)
-Title.BackgroundTransparency = 1
-Title.Text = "🎣 Fishit Fast Fishing"
-Title.TextColor3 = Color3.new(1,1,1)
-Title.TextScaled = true
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.fromScale(1,0.2)
+title.BackgroundTransparency = 1
+title.Text = "🎥 Free Cam Mobile"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
 
-local Toggle = Instance.new("TextButton", Frame)
-Toggle.Size = UDim2.fromScale(0.8,0.2)
-Toggle.Position = UDim2.fromScale(0.1,0.25)
-Toggle.Text = "STATUS : OFF"
-Toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
-Toggle.TextColor3 = Color3.new(1,1,1)
+local toggle = Instance.new("TextButton", frame)
+toggle.Size = UDim2.fromScale(0.8,0.2)
+toggle.Position = UDim2.fromScale(0.1,0.25)
+toggle.Text = "FREECAM : OFF"
 
-local SpeedLabel = Instance.new("TextLabel", Frame)
-SpeedLabel.Size = UDim2.fromScale(0.8,0.15)
+local function makeBtn(txt, x, y)
+	local b = Instance.new("TextButton", frame)
+	b.Size = UDim2.fromScale(0.35,0.15)
+	b.Position = UDim2.fromScale(x,y)
+	b.Text = txt
+	return b
+end
+
+local forward = makeBtn("↑", 0.1, 0.5)
+local back = makeBtn("↓", 0.55, 0.5)
+local up = makeBtn("⬆", 0.1, 0.7)
+local down = makeBtn("⬇", 0.55, 0.7)
+
+-- ================= LOGIC =================
+toggle.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	toggle.Text = enabled and "FREECAM : ON" or "FREECAM : OFF"
+	if enabled then
+		cam.CameraType = Enum.CameraType.Scriptable
+	else
+		cam.CameraType = Enum.CameraType.Custom
+	end
+end)
+
+local function bind(btn, vec)
+	btn.MouseButton1Down:Connect(function()
+		moveDir = vec
+	end)
+	btn.MouseButton1Up:Connect(function()
+		moveDir = Vector3.zero
+	end)
+end
+
+bind(forward, Vector3.new(0,0,-1))
+bind(back, Vector3.new(0,0,1))
+bind(up, Vector3.new(0,1,0))
+bind(down, Vector3.new(0,-1,0))
+
+-- ================= TOUCH LOOK =================
+UIS.TouchMoved:Connect(function(touch, gpe)
+	if not enabled then return end
+	if not lastTouchPos then
+		lastTouchPos = touch.Position
+		return
+	end
+
+	local delta = touch.Position - lastTouchPos
+	lastTouchPos = touch.Position
+
+	local rotX = -delta.Y * 0.002
+	local rotY = -delta.X * 0.002
+
+	cam.CFrame = cam.CFrame * CFrame.Angles(rotX, rotY, 0)
+end)
+
+UIS.TouchEnded:Connect(function()
+	lastTouchPos = nil
+end)
+
+-- ================= MOVE LOOP =================
+RunService.RenderStepped:Connect(function(dt)
+	if enabled and moveDir.Magnitude > 0 then
+		cam.CFrame = cam.CFrame + cam.CFrame:VectorToWorldSpace(moveDir * speed)
+	end
+end)SpeedLabel.Size = UDim2.fromScale(0.8,0.15)
 SpeedLabel.Position = UDim2.fromScale(0.1,0.5)
 SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.TextColor3 = Color3.new(1,1,1)
