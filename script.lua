@@ -1,40 +1,73 @@
--- Free Cam Mobile (Center + Draggable)
--- by joy_yepyep
+----------------------------------------------------------------
+-- MOBILE TOPBAR UI (DRAG + CLOSE)
+----------------------------------------------------------------
 
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
 local player = Players.LocalPlayer
-local cam = workspace.CurrentCamera
+local PlayerGui = player:WaitForChild("PlayerGui")
 
+-- ScreenGui
+local ui = Instance.new("ScreenGui")
+ui.Name = "MobileFreecam"
+ui.ResetOnSpawn = false
+ui.Parent = PlayerGui
+
+-- Topbar Frame
+local topbar = Instance.new("Frame")
+topbar.Parent = ui
+topbar.Size = UDim2.fromScale(0.45, 0.12)
+topbar.Position = UDim2.fromScale(0.5, 0.5) -- 🔥 tengah layar
+topbar.AnchorPoint = Vector2.new(0.5, 0.5)
+topbar.BackgroundColor3 = Color3.fromRGB(30,30,30)
+topbar.Active = true
+topbar.Draggable = true -- ✅ bisa digeser
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Parent = topbar
+title.Size = UDim2.fromScale(0.7, 1)
+title.BackgroundTransparency = 1
+title.Text = "🎥 FREECAM"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+
+-- Close Button
+local close = Instance.new("TextButton")
+close.Parent = topbar
+close.Size = UDim2.fromScale(0.15, 0.8)
+close.Position = UDim2.fromScale(0.85, 0.1)
+close.Text = "✕"
+close.TextScaled = true
+close.BackgroundColor3 = Color3.fromRGB(120,30,30)
+close.TextColor3 = Color3.new(1,1,1)
+
+-- Toggle Button
+local toggle = Instance.new("TextButton")
+toggle.Parent = ui
+toggle.Size = UDim2.fromScale(0.3, 0.1)
+toggle.Position = UDim2.fromScale(0.35, 0.63)
+toggle.Text = "FREECAM : OFF"
+toggle.TextScaled = true
+toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+toggle.TextColor3 = Color3.new(1,1,1)
+
+-- Bind ke Freecam script kamu
 local enabled = false
-local speed = 1.5
-local moveDir = Vector3.zero
-local lastTouchPos = nil
+local toggleEvent = Instance.new("BindableEvent")
+toggleEvent.Name = "Toggle"
+toggleEvent.Parent = ui
 
--- ================= UI =================
-local gui = Instance.new("ScreenGui")
-gui.Name = "FreeCamMobile"
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+-- Toggle logic
+toggle.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	toggle.Text = enabled and "FREECAM : ON" or "FREECAM : OFF"
+	toggleEvent:Fire(enabled)
+end)
 
-local frame = Instance.new("Frame")
-frame.Parent = gui
-frame.Size = UDim2.fromScale(0.45, 0.35)
-
--- 🔥 MUNCUL DI TENGAH
-frame.Position = UDim2.fromScale(0.5, 0.5)
-frame.AnchorPoint = Vector2.new(0.5, 0.5)
-
-frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-frame.Active = true
-frame.Draggable = true -- ✅ bisa digeser
-
--- ================= TOPBAR =================
-local topbar = Instance.new("TextLabel")
-topbar.Parent = frame
-topbar.Size = UDim2.fromScale(1, 0.18)
+-- Close UI
+close.MouseButton1Click:Connect(function()
+	ui.Enabled = false
+end)topbar.Size = UDim2.fromScale(1, 0.18)
 topbar.BackgroundColor3 = Color3.fromRGB(45,45,45)
 topbar.Text = "🎥 Free Cam Mobile"
 topbar.TextColor3 = Color3.new(1,1,1)
